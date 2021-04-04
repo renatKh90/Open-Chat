@@ -58,8 +58,13 @@ public class ClientHandler {
                             break;
                         }
                         if(str.startsWith("/w")){
-                          String recipient = str.split(" ")[1];
-                          String msg = str.split(" ")[2];
+                          String[] s = str.split(" ");
+                          String recipient = s[1];
+                            String msg = "";
+                            for(int i = 2; i < s.length; i++) {
+                                msg = msg + s[i] + " ";
+                            }
+                          //String msg = s[2] + " " + s[3] + " " + s[4];
                           server.sendPrivateMessage(msg, this, recipient);
                         } else
                         server.broadcastMsg(this, str);
