@@ -76,5 +76,6 @@ public class Server {
                 break;
             }
         }
+        sender.sendMsg("[private message to " + sender.getNickname() + "] " + msg);
     }
 }
