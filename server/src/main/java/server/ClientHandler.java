@@ -11,8 +11,10 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
 
+    private String nickname;
+
     public ClientHandler(Server server, Socket socket) {
-        try{
+        try {
             this.server = server;
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
@@ -20,21 +22,48 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
+                    // цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
 
                         if (str.equals("/end")) {
                             out.writeUTF("/end");
-                            System.out.println("disconnect");
                             break;
                         }
+                        if (str.startsWith("/auth")) {
+                            String[] token = str.split("\\s+", 3);
+                            String newNick = server
+                                    .getAuthService()
+                                    .getNicknameByLoginAndPassword(token[1], token[2]);
+                            if (newNick != null) {
+                                nickname = newNick;
+                                sendMsg("/auth_ok "+ nickname);
+                                server.subscribe(this);
+                                System.out.println("Client authenticated. nick: "+ nickname +
+                                        " Address: "+ socket.getRemoteSocketAddress());
+                                break;
+                            } else {
+                                sendMsg("Неверный логин / пароль");
+                            }
+                        }
 
-                        server.broadcastMsg(str);
+                    }
 
+                    //цикл работы
+                    while (true) {
+                        String str = in.readUTF();
+
+                        if (str.equals("/end")) {
+                            out.writeUTF("/end");
+                            break;
+                        }
+                        server.broadcastMsg(this, str);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
+                    server.unsubscribe(this);
+                    System.out.println("client disconnect " + socket.getRemoteSocketAddress());
                     try {
                         socket.close();
                     } catch (IOException e) {
@@ -48,11 +77,15 @@ public class ClientHandler {
         }
     }
 
-    public void sendMsg(String msg){
+    public void sendMsg(String msg) {
         try {
             out.writeUTF(msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 }

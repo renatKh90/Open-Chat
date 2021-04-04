@@ -17,9 +17,11 @@ public class Server {
 
     private static final int PORT = 8189;
     private List<ClientHandler> clients;
+    private AuthService authService;
 
     public Server() {
         clients = new CopyOnWriteArrayList<>();
+        authService = new SimpleAuthService();
 
         try {
             server = new ServerSocket(PORT);
@@ -29,7 +31,7 @@ public class Server {
                 socket = server.accept();
                 System.out.println(socket.getLocalSocketAddress());
                 System.out.println("Client connect: "+ socket.getRemoteSocketAddress());
-                clients.add(new ClientHandler(this, socket));
+                new ClientHandler(this, socket);
             }
 
         } catch (IOException e) {
@@ -48,9 +50,22 @@ public class Server {
         }
     }
 
-    public void broadcastMsg(String msg){
+    public void broadcastMsg(ClientHandler sender, String msg){
+        String message = String.format("%s : %s", sender.getNickname(), msg);
         for (ClientHandler c : clients) {
-            c.sendMsg(msg);
+            c.sendMsg(message);
         }
+    }
+
+    public void subscribe(ClientHandler clientHandler){
+        clients.add(clientHandler);
+    }
+
+    public void unsubscribe(ClientHandler clientHandler){
+        clients.remove(clientHandler);
+    }
+
+    public AuthService getAuthService() {
+        return authService;
     }
 }
