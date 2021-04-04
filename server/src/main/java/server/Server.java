@@ -68,4 +68,13 @@ public class Server {
     public AuthService getAuthService() {
         return authService;
     }
+
+    public void sendPrivateMessage(String msg, ClientHandler sender, String recipient) {
+        for (ClientHandler client : clients) {
+            if(client.getNickname().equals(recipient)) {
+                client.sendMsg("[private message from " + sender.getNickname() + "] " + msg);
+                break;
+            }
+        }
+    }
 }

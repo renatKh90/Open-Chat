@@ -57,6 +57,11 @@ public class ClientHandler {
                             out.writeUTF("/end");
                             break;
                         }
+                        if(str.startsWith("/w")){
+                          String recipient = str.split(" ")[1];
+                          String msg = str.split(" ")[2];
+                          server.sendPrivateMessage(msg, this, recipient);
+                        } else
                         server.broadcastMsg(this, str);
                     }
                 } catch (IOException e) {
