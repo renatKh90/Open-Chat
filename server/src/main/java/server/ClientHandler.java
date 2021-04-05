@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private Server server;
@@ -16,6 +17,9 @@ public class ClientHandler {
 
     public ClientHandler(Server server, Socket socket) {
         try {
+            // установска таймаута, максимальное время молчания,
+            // после которого будет брошено исключение SocketTimeoutException
+            socket.setSoTimeout(120000);
             this.server = server;
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
@@ -23,10 +27,6 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
-                    // установска таймаута, максимальное время молчания,
-                    // после которого будет брошено исключение SocketTimeoutException
-//                    socket.setSoTimeout(5000);
-
                     // цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
@@ -93,9 +93,13 @@ public class ClientHandler {
                             server.broadcastMsg(this, str);
                         }
                     }
+
                     //обработать SocketTimeoutException
+
                 } catch (RuntimeException e) {
                     System.out.println(e.getMessage());
+                } catch (SocketTimeoutException e) {
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
