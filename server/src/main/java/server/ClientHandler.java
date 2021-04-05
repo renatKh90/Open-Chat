@@ -17,9 +17,6 @@ public class ClientHandler {
 
     public ClientHandler(Server server, Socket socket) {
         try {
-            // установска таймаута, максимальное время молчания,
-            // после которого будет брошено исключение SocketTimeoutException
-            socket.setSoTimeout(120000);
             this.server = server;
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
@@ -27,7 +24,11 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
+                    // установска таймаута, максимальное время молчания,
+                    // после которого будет брошено исключение SocketTimeoutException
+                    socket.setSoTimeout(120000);
                     // цикл аутентификации
+
                     while (true) {
                         String str = in.readUTF();
 
