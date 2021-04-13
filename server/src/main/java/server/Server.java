@@ -27,10 +27,10 @@ public class Server {
             server = new ServerSocket(PORT);
             System.out.println("Server started");
 
-            while(true){
+            while (true) {
                 socket = server.accept();
                 System.out.println(socket.getLocalSocketAddress());
-                System.out.println("Client connect: "+ socket.getRemoteSocketAddress());
+                System.out.println("Client connect: " + socket.getRemoteSocketAddress());
                 new ClientHandler(this, socket);
             }
 
@@ -50,32 +50,43 @@ public class Server {
         }
     }
 
-    public void broadcastMsg(ClientHandler sender, String msg){
+    public void broadcastMsg(ClientHandler sender, String msg) {
         String message = String.format("%s : %s", sender.getNickname(), msg);
         for (ClientHandler c : clients) {
             c.sendMsg(message);
         }
     }
 
-    public void subscribe(ClientHandler clientHandler){
-        clients.add(clientHandler);
+    public void privateMsg(ClientHandler sender, String receiver, String msg) {
+        String message = String.format("[ %s ] to [ %s ] : %s", sender.getNickname(), receiver, msg);
+
+        for (ClientHandler c : clients) {
+            if (c.getNickname().equals(receiver)) {
+                c.sendMsg(message);
+                if (sender.equals(c)) {
+                    return;
+                }
+                sender.sendMsg(message);
+                return;
+            }
+        }
+        sender.sendMsg("not found user: " + receiver);
     }
 
-    public void unsubscribe(ClientHandler clientHandler){
+    public void subscribe(ClientHandler clientHandler) {
+        clients.add(clientHandler);
+        broadcastClientList();
+    }
+
+    public void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        broadcastClientList();
     }
 
     public AuthService getAuthService() {
         return authService;
     }
 
-    public void sendPrivateMessage(String msg, ClientHandler sender, String recipient) {
-        for (ClientHandler client : clients) {
-            if(client.getNickname().equals(recipient)) {
-                client.sendMsg("[private message from " + sender.getNickname() + "] " + msg);
-                break;
-            }
-        }
-        sender.sendMsg("[private message to " + sender.getNickname() + "] " + msg);
+
     }
 }
