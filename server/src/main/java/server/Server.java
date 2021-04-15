@@ -1,14 +1,9 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
-import java.util.Scanner;
-import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server {
@@ -21,7 +16,14 @@ public class Server {
 
     public Server() {
         clients = new CopyOnWriteArrayList<>();
-        authService = new SimpleAuthService();
+
+
+        if (!SqlHandler.connectToDB()) {
+            throw new RuntimeException("Не удалось подключиться к БД");
+        }
+        authService = new DataBaseAuthService();
+
+//        authService = new SimpleAuthService();
 
         try {
             server = new ServerSocket(PORT);
@@ -37,6 +39,7 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            SqlHandler.disconnectFromDB();
             try {
                 socket.close();
             } catch (IOException e) {
