@@ -16,14 +16,7 @@ public class Server {
 
     public Server() {
         clients = new CopyOnWriteArrayList<>();
-
-
-        if (!SqlHandler.connectToDB()) {
-            throw new RuntimeException("Не удалось подключиться к БД");
-        }
-        authService = new DataBaseAuthService();
-
-//        authService = new SimpleAuthService();
+        authService = new SimpleAuthService();
 
         try {
             server = new ServerSocket(PORT);
@@ -39,7 +32,6 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            SqlHandler.disconnectFromDB();
             try {
                 socket.close();
             } catch (IOException e) {
