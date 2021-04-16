@@ -91,6 +91,7 @@ public class ClientHandler {
                                 String[] token = str.split("\\s+", 3);
                                 server.privateMsg(this, token[1], token[2]);
                             }
+
                         } else {
                             server.broadcastMsg(this, str);
                         }

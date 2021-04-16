@@ -13,4 +13,5 @@ public interface AuthService {
      * Попытка регистрации новой учетной записи
      * */
     boolean registration(String login, String password, String nickname);
+
 }
