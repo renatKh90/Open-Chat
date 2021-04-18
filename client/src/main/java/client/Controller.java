@@ -2,7 +2,6 @@ package client;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -17,13 +16,12 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -55,6 +53,8 @@ public class Controller implements Initializable {
     private Stage stage;
     private Stage regStage;
     private RegController regController;
+
+
 
     public void setAuthenticated(boolean authenticated) {
         this.authenticated = authenticated;
@@ -109,6 +109,8 @@ public class Controller implements Initializable {
                             if (str.startsWith("/auth_ok")) {
                                 nickname = str.split("\\s+")[1];
                                 setAuthenticated(true);
+                                createHistoryFile();
+                                showHistory();
                                 break;
                             }
                             if (str.startsWith("/reg_ok")) {
@@ -124,6 +126,7 @@ public class Controller implements Initializable {
                     }
                     //цикл работы
                     while (authenticated) {
+
                         String str = in.readUTF();
 
                         if (str.startsWith("/")) {
@@ -149,6 +152,7 @@ public class Controller implements Initializable {
 
                         } else {
                             textArea.appendText(str + "\n");
+                            saveHistory();
                         }
                     }
                 } catch (IOException e) {
@@ -249,6 +253,49 @@ public class Controller implements Initializable {
             out.writeUTF(msg);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void createHistoryFile() {
+        String name = "history_" + loginField.getText() + ".txt";
+        File history = new File(name);
+        try {
+            if (!history.exists()) {
+                System.out.println("Creating history file");
+                history.createNewFile();
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveHistory() throws IOException {
+        String name = "history_" + loginField.getText() + ".txt";
+        File history = new File(name);
+
+        PrintWriter fileWriter = new PrintWriter(new FileWriter(history, false));
+
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        bufferedWriter.write(textArea.getText());
+        bufferedWriter.close();
+
+        }
+
+    private void showHistory() throws IOException {
+        String name = "history_" + loginField.getText() + ".txt";
+        File history = new File(name);
+        List<String> historyList = new ArrayList<>();
+        FileInputStream in = new FileInputStream(history);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+
+        String temp;
+        while ((temp = bufferedReader.readLine()) != null) {
+            historyList.add(temp);
+        }
+
+        for (int i = 0; i < historyList.size() ; i++) {
+            textArea.appendText(historyList.get(i) + "\n");
         }
     }
 }
